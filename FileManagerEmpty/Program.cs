@@ -36,7 +36,7 @@ namespace FileManagerEmpty
     //Приложение должно обрабатывать непредвиденные ситуации (не падать)
     //При успешном выполнение предыдущих пунктов – реализовать сохранение ошибки в текстовом файле в каталоге errors/random_name_exception.txt
     //При успешном выполнение предыдущих пунктов – реализовать движение по истории команд (стрелочки вверх, вниз)
-    internal class Program
+    internal partial class Program
     {
         static Dictionary<string, string> collectionHelp = new Dictionary<string, string>();
         static string Folder = @"C:\";
@@ -44,67 +44,49 @@ namespace FileManagerEmpty
         public delegate void OnKey(ConsoleKeyInfo key);
         public event OnKey KeyPr;
 
-        public static class Help
-        {
-            public static void ConsoleHelp()
-            {
-                //
-                Console.WriteLine();
-                if (!collectionHelp.ContainsKey("ls"))
-                {
-                    collectionHelp.Add("ls", "Вывод дерева файловой системы с условием “пейджинга”\nПараметр -p, пример ls C:\\Source -p 2");
-                    collectionHelp.Add("cp", "Копирование каталога,пример C:\\Source D:\\Target или C:\\source.txt D:\\target.txt");
-                    collectionHelp.Add("rm", "Удаление каталога рекурсивно/Файла, пример rm C:\\Source или rm C:\\source.txt");
-                    collectionHelp.Add("file", "Вывод информации");
-                    collectionHelp.Add("Help", "Все доступные команды,пример file C:\\source.txt");
-                }
-                foreach (var item in collectionHelp)
-                {
-                    Console.WriteLine(item);
-                }
+        static string SelectFolder = @"C:/";
+        static int Paging = 0;
 
-            }
-        }
-        class CommandConsole
-        {
-            //public string ConsoleRead()
-            //{
-            //    string Commanda = null;
-            //    List<string> list = new List<string>();
-            //    StringBuilder stroka = new();
-            //    while (true)
-            //    {
-            //        Commanda = null;
-            //        ConsoleKeyInfo key = Console.ReadKey(false);
-            //        stroka.Append(key.Key.ToString());
+        //class CommandConsole
+        //{
+        //    //public string ConsoleRead()
+        //    //{
+        //    //    string Commanda = null;
+        //    //    List<string> list = new List<string>();
+        //    //    StringBuilder stroka = new();
+        //    //    while (true)
+        //    //    {
+        //    //        Commanda = null;
+        //    //        ConsoleKeyInfo key = Console.ReadKey(false);
+        //    //        stroka.Append(key.Key.ToString());
 
-            //        if (stroka.Length >= 2)
-            //        {
-            //            if (stroka.ToString().StartsWith("OK"))
-            //            {
+        //    //        if (stroka.Length >= 2)
+        //    //        {
+        //    //            if (stroka.ToString().StartsWith("OK"))
+        //    //            {
 
-            //                Console.WriteLine("OKey");
-            //                Console.WriteLine("ИИ определил что вы написали oK");
-            //                Console.WriteLine("Если это та команда что  вы хотели жмите Enter");
-            //                ConsoleKeyInfo key1 = Console.ReadKey(false);
-            //                if (key1.Key == ConsoleKey.Enter)
-            //                {
-            //                    Commanda = "OKey";
-            //                    break;
-            //                }
-            //            }
+        //    //                Console.WriteLine("OKey");
+        //    //                Console.WriteLine("ИИ определил что вы написали oK");
+        //    //                Console.WriteLine("Если это та команда что  вы хотели жмите Enter");
+        //    //                ConsoleKeyInfo key1 = Console.ReadKey(false);
+        //    //                if (key1.Key == ConsoleKey.Enter)
+        //    //                {
+        //    //                    Commanda = "OKey";
+        //    //                    break;
+        //    //                }
+        //    //            }
 
 
-            //            break;
-            //        }
-            //    }
-            //    Console.WriteLine($"выбран команда {Commanda}");
-            //    Console.ReadLine();
-            //}
+        //    //            break;
+        //    //        }
+        //    //    }
+        //    //    Console.WriteLine($"выбран команда {Commanda}");
+        //    //    Console.ReadLine();
+        //    //}
 
 
 
-        }
+        //}
 
         /// <summary>
         /// Требуется создать консольный файловый менеджер начального уровня, который покрывает минимальный набор функционала по работе с файлами.
@@ -117,10 +99,10 @@ namespace FileManagerEmpty
             Console.Title = "FILE Manager " + Environment.Version.ToString();
             ErrorsLogFile();
             DrawInterface();
-
             Console.ReadKey();
 
         }
+
 
         private static void ErrorsLogFile()
         {
@@ -144,6 +126,9 @@ namespace FileManagerEmpty
             }
         }
 
+        /// <summary>
+        /// Перерисоки интерфейса после ввода команд
+        /// </summary>
         private static void DrawInterface()
         {
             while (true)
@@ -155,19 +140,15 @@ namespace FileManagerEmpty
                 Console_CursorPos(0, 0);
                 Console.WriteLine(stringa);
                 //тут  метод для показа файлов и папок
-                DicAndFolders();
+                DirectoryAndFolders();
                 Console.WriteLine("Информация о выбранном");
                 Console_CursorPos(0, 17);
                 Console.WriteLine(stringa);
-                Informations();//по дефолту
+                DefoultInfo();//по дефолту
                 Console.WriteLine(stringa);
                 Console.WriteLine("Ввведите нужную команду");
                 Console_CursorPos(0, 22);//коор команды ввода
-
-                InputCommand();
-                Console.WriteLine();
-                Console_CursorPos(0, 22);//коор команды ввода 4 строки достаточно
-                Console_CursorPos(0, 26);
+                InputCommand();              
                 Console.WriteLine(stringa);
                 Console.WriteLine("Поддерживаемые команды");
                 Console.WriteLine(stringa);
@@ -227,42 +208,34 @@ namespace FileManagerEmpty
             }
             return true;
         }
-
+        /// <summary>
+        /// Оброботчик Команд
+        /// </summary>
+        /// <param name="res"></param>
+        /// <param name="comm"></param>
+        /// <returns></returns>
         private static bool ParseArgumentLine(ref string res, ref string comm)
         {
 
-            (string PathInput, string PathOutput, int pag) = CheckDirandFile(ref res, ref comm);
-
-
-            //collectionHelp.Add("cp", "Копирование каталога,пример C:\\Source D:\\Target или C:\\source.txt D:\\target.txt");
-            //collectionHelp.Add("rm", "Удаление каталога рекурсивно/Файла, пример rm C:\\Source или rm C:\\source.txt");
-            //collectionHelp.Add("file", "Вывод информации");
-            //collectionHelp.Add("Help", "Все доступные команды,пример file C:\\source.txt");
-
-
+            (string PathInput, string PathOutput, int pag) = CheckFolderAndFiles(ref res, ref comm);
 
             switch (res)
             {
                 case "ls": return Directory_Output(ref PathInput, pag);
-                case "cp": return CopyDirectoryOrFiles(ref PathInput, ref PathOutput); break;
+                case "cp": return CopyDirectoryOrFiles(ref PathInput, ref PathOutput);
                 case "rm": DeleteDirectoryOrFile(ref PathInput); break;
-                case "file": return OutFile(ref PathInput, ref comm); break;
+                case "file": return OutFile(ref PathInput, ref comm);
                 case "Help": HelpInfo(true); return false;
                 default: Console.WriteLine("BagCommand"); break;
             }
             return true;
-
-
-            //if (!collectionHelp.ContainsKey("ls"))
-            //{
-            //    collectionHelp.Add("ls", "Вывод дерева файловой системы с условием “пейджинга”\nПараметр -p, пример ls C:\\Source -p 2");
-            //    collectionHelp.Add("cp", "Копирование каталога,пример C:\\Source D:\\Target или C:\\source.txt D:\\target.txt");
-            //    collectionHelp.Add("rm", "Удаление каталога рекурсивно/Файла, пример rm C:\\Source или rm C:\\source.txt");
-            //    collectionHelp.Add("file", "Вывод информации,пример file C:\\source.txt"");
-            //    collectionHelp.Add("Help", "Все доступные команды);
-            //}
         }
 
+
+        /// <summary>
+        /// Вывод помощи на весь экран
+        /// </summary>
+        /// <param name="flag"></param>
         private static void HelpInfo(bool flag = false)
         {
             Console.Clear();
@@ -274,6 +247,12 @@ namespace FileManagerEmpty
             }
         }
 
+        /// <summary>
+        /// Выводим информацию о файла
+        /// </summary>
+        /// <param name="pathInput"></param>
+        /// <param name="comm"></param>
+        /// <returns></returns>
         private static bool OutFile(ref string pathInput, ref string comm)
         {
             if (pathInput == null)
@@ -281,37 +260,45 @@ namespace FileManagerEmpty
                 var pathN = comm.Replace("file ", "", StringComparison.OrdinalIgnoreCase);
                 if (!Path.HasExtension(pathN))// папка 
                 {
-                    Informations(ref pathN, true);//true -РАБ  С ПАПКОЙ
+                    OutInform(ref pathN, true);//true -РАБ  С ПАПКОЙ
                 }
                 else
                 {
-                    Informations(ref pathN, false);
+                    OutInform(ref pathN, false);
                 }
 
             }
             var result = Path.HasExtension(pathInput);
             if (!result && pathInput != null) // папка 
             {
-                Informations(ref pathInput, true);//true -РАБ  С ПАПКОЙ
+                OutInform(ref pathInput, true);//true -РАБ С ПАПКОЙ
             }
             else if (pathInput != null)//файл 
             {
-                Informations(ref pathInput, false);
+                OutInform(ref pathInput, false);
             }
             return true;//означ.  что не пер. интрерфейс
         }
-
-        private static void Informations(ref string pathInput, bool v)
+        /// <summary>
+        /// Вывод инфо о File or Folder
+        /// </summary>
+        /// <param name="pathInput"></param>
+        /// <param name="v"></param>
+        private static void OutInform(ref string pathInput, bool v)
         {
             if (v)//work folder
             {
                 GetDirectoryInfo(ref pathInput);
                 return;
             }
+            
             GetFileInfo(ref pathInput);
 
         }
-
+        /// <summary>
+        /// Удаление File or Folder
+        /// </summary>
+        /// <param name="pathInput"></param>
         private static void DeleteDirectoryOrFile(ref string pathInput)
         {
             var result = Path.HasExtension(pathInput);
@@ -325,6 +312,8 @@ namespace FileManagerEmpty
                 {
                     Console.Write($"{pathInput} не существует Нажмите любую клавишу");
                     Console.ReadKey();
+                    Console.Clear();
+                    return;
                 }
             }
             else if (pathInput != null)//файл
@@ -333,10 +322,10 @@ namespace FileManagerEmpty
                 {
                     DeleteFile(pathInput);
                 }
-
             }
-            Console.Write($"Null");
-
+            Console.Write($"Null, не существует Нажмите любую клавишу");
+            Console.ReadKey();
+            Console.Clear();
 
 
 
@@ -344,8 +333,13 @@ namespace FileManagerEmpty
         }
 
 
-
-
+       
+        /// <summary>
+        /// Создать копию папки или файла
+        /// </summary>
+        /// <param name="pathInput"></param>
+        /// <param name="pathOutput"></param>
+        /// <returns></returns>
         private static bool CopyDirectoryOrFiles(ref string pathInput, ref string pathOutput)
         {
             var result = Path.HasExtension(pathInput);
@@ -388,8 +382,6 @@ namespace FileManagerEmpty
             else//file
             {
                 File_Copy(pathInput, pathOutput);
-
-
             }
 
 
@@ -400,46 +392,13 @@ namespace FileManagerEmpty
             {
                 return false;
             }
-            //if (!Directory.Exists(pathOutput))
-            //{
-            //    Directory.CreateDirectory(pathOutput);
-
-            //    pathTo = userCommands[2];
-            //    if (!Directory.Exists(pathTo))
-            //    {
-            //        CopyDirectory(pathFrom, pathTo);
-            //    }
-            //    else
-            //    {
-            //        StandAtCommandLine();
-            //        Console.Write($"{pathTo} уже существует (Нажмите любую клавишу)");
-            //        Console.ReadKey();
-            //        break;
-            //    }
-            //}
-            //else if (File.Exists(pathFrom) && userCommands.Count == 3)
-            //{
-            //    pathTo = userCommands[2];
-            //    if (!File.Exists(pathTo))
-            //    {
-            //        CopyFile(pathFrom, pathTo);
-            //    }
-            //    else
-            //    {
-            //        StandAtCommandLine();
-            //        Console.Write($"{pathTo} уже существует (Нажмите любую клавишу)");
-            //        Console.ReadKey();
-            //        break;
-            //    }
-            //}
-            //else
-            //{
-            //    StandAtCommandLine();
-            //    Console.Write($"{pathFrom} не существует (Нажмите любую клавишу)");
-            //    Console.ReadKey();
-            //}
         }
 
+        /// <summary>
+        /// Скопировать Файл 
+        /// </summary>
+        /// <param name="pathInput"></param>
+        /// <param name="pathOutput"></param>
         private static void File_Copy(string pathInput, string pathOutput)
         {
             try
@@ -469,9 +428,12 @@ namespace FileManagerEmpty
                 Console.ReadKey();
             }
         }
-
-        static string SelectFolder = @"C:/";
-        static int Paging = 0;
+        /// <summary>
+        /// Вывод инфо о Директории 
+        /// </summary>
+        /// <param name="selectFolder"></param>
+        /// <param name="pagg"></param>
+        /// <returns></returns>
         private static bool Directory_Output(ref string selectFolder, int pagg)
         {
             if (selectFolder != null && Directory.Exists(selectFolder))//еще одна провера папки, вдруг юзер удалил ее =)
@@ -484,31 +446,38 @@ namespace FileManagerEmpty
             return false;
         }
 
-        private static (string, string, int) CheckDirandFile(ref string res, ref string comm)
+        readonly static string PatternLS = @".:\\+[#'.А-Яа-яA-Za-z0-9\\ ]* -p[ 0-9]{0,9999}";
+        readonly static string PatternAll = @".:\\+['.А-Яа-яA-Za-z0-9\\ ]* .:\\+['.А-Яа-яA-Za-z0-9\\ ]*";
+        readonly static string PatternNoPagging = @".:\\+['.А-Яа-яA-Za-z0-9\\ ]*";
+        /// <summary>
+        /// Проверка регуляркой папки, китайский не поодерживается но можно легко добавить...
+        /// </summary>
+        /// <param name="res"></param>
+        /// <param name="comm"></param>
+        /// <returns></returns>
+        private static (string, string, int) CheckFolderAndFiles(ref string res, ref string comm)
         {
             //универ.метод определения есть ли папка или файл простая проверка перед работой позволит  понять , были ли пробелы в названиях папки
             string puthInput = null;
-
             string puthOup = null;
             int pag = 0;
-            string newSting = null;
             bool ListorAll = res == "ls";
             //два вида регулярки в продакшен их можно поместить в статический класс и скопилировать сразу,
             //тут это делать не буду , чтобы была видна логика 
-            string pattern = null;
+            string pattern;
             if (ListorAll)
             {
-                pattern = @".:\\+[#'.А-Яа-яA-Za-z0-9\\ ]* -p[ 0-9]{0,9999}";
+                pattern = PatternLS;
             }
             else
             {
-                pattern = @".:\\+['.А-Яа-яA-Za-z0-9\\ ]* .:\\+['.А-Яа-яA-Za-z0-9\\ ]*";
+                pattern = PatternAll;
             }
             var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
             var mathess = regex.Matches(comm);
             if (ListorAll && mathess != null && mathess.Count == 0)//user has not entered pagination 
             {
-                pattern = @".:\\+['.А-Яа-яA-Za-z0-9\\ ]*";
+                pattern = PatternNoPagging;
                 regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 mathess = regex.Matches(comm);
                 foreach (Match item in mathess)
@@ -516,12 +485,10 @@ namespace FileManagerEmpty
                     var type = item.Value;
                     if (Directory.Exists(type))// пример ls C:\\Source -p 2"
                     {
-                        puthInput = type;//она же дир  изспользуется не по назначению 
+                        puthInput = type;//она же дир.  изспользуется не по назначению 
                         return (puthInput, puthOup, pag);
                     }
                 }
-
-
             }
             foreach (Match mathes in mathess)
             {
@@ -577,7 +544,7 @@ namespace FileManagerEmpty
                                         var pt = stringBuilder.ToString();
                                         if (puthInput == null)
                                         {
-                                            tempSymbol = pt.Substring(pt.Length - 1);
+                                            tempSymbol = pt.Substring(pt.Length - 1);//запоминаем до след. итерации
                                             puthInput = pt.Remove(pt.Length - 1);
                                             stringBuilder.Clear();
                                             Dobor = false;
@@ -606,20 +573,11 @@ namespace FileManagerEmpty
                             stringBuilder.Clear();
                             Dobor = false;
                             continue;
-
                         }
                     }
-
                 }
-
-
             }
             return (puthInput, puthOup, pag);
-
-
-
-
-
         }
 
         /// <summary>
@@ -639,29 +597,39 @@ namespace FileManagerEmpty
             }
             return null;
         }
-
+        /// <summary>
+        /// Ввод команды 
+        /// </summary>
         private static void InputCommand()
         {
             Console.Write(">> ");
-            //потом найти эту позицию  и поставить сюда курсор  для ввода мышки           
+            //потом найти эту позицию  и поставить сюда курсор  для ввода мышки
+            // Console.WriteLine();
+            Console_CursorPos(0, 22);//коор команды ввода 4 строки достаточно
+            Console_CursorPos(0, 26);
         }
 
-        static bool GetInfo = false;
-        private static void Informations()
+        private static void DefoultInfo()
         {
-
             var currentDirectory = Folder;
             GetDirectoryInfo(ref currentDirectory);
         }
-
+        /// <summary>
+        /// Задать координаты кастомным методом )))
+        /// </summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
         private static void Console_CursorPos(int v1, int v2)
         {
             Console.CursorLeft = v1;//по x строке
             Console.CursorTop = v2;//по y столбцу
         }
-
-        private static void DicAndFolders()
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void DirectoryAndFolders()
         {
+            
             var path = SelectFolder;//выбранная папка
             var PageMaxSetting = Paging; //выбранная страница
             var pageLines = 8;// кол-во выводимых файлов на страницу
@@ -671,6 +639,36 @@ namespace FileManagerEmpty
             //создаем словарь с индексом элемента, для того чтобы потом по нему перемещаться 
             Dictionary<int, string> directoriesOrFiles = new();
             int indexFile = 0;
+
+
+            //string[] entries = Directory.GetDirectories(path);
+
+            //var result = Directory.GetDirectories(path).OrderBy(ent => ent.CreationTime).Select(dir => new
+            //{
+            //    Name = dir.Name,
+            //    Attr = dir.Attributes,
+            //    Creation = dir.CreationTime
+            //});
+
+
+
+            //var result = from dir in
+            //                 from e in entries select new DirectoryInfo(e)
+            //             orderby dir.CreationTime
+            //             select new
+            //             {
+            //                 Name = dir.Name,
+            //                 Attr = dir.Attributes,
+            //                 Creation = dir.CreationTime
+            //             };
+            //foreach (var item in result)
+            //{
+            //    Console.WriteLine("{0}\n\t{1}\t{2}",
+            //                      item.Name, item.Creation, item.Attr);
+            //}
+
+
+
             foreach (var item in Directory.GetDirectories(path))
             {
                 directoriesOrFiles.Add(indexFile, item);
@@ -687,7 +685,7 @@ namespace FileManagerEmpty
             {
                 Dictionary<int, List<KeyValuePair<int, string>>> Pagination = new();
                 //распределения файлов по разным страницам 
-                var temp = pageLines;//кол-во выводимы 
+                //var temp = pageLines;//кол-во выводимы 
                 int indexPathPagin = 0;
                 int index = 0;
                 foreach (var pathId in directoriesOrFiles)
@@ -810,7 +808,10 @@ namespace FileManagerEmpty
         //}
 
 
-        //вывод информации о каталоге
+        /// <summary>
+        /// Вывод информации о каталоге
+        /// </summary>
+        /// <param name="path"></param>
         static void GetDirectoryInfo(ref string path)
         {
             if (Directory.Exists(path))//еще раз  проверим вдруг удалена.. 
@@ -823,7 +824,7 @@ namespace FileManagerEmpty
                 Console.WriteLine($"Последний доступ к текущему : {directoryInfo.LastAccessTime} / ");
                 Console.WriteLine($"Время последней операции записи: {directoryInfo.LastWriteTime}");
                 Console.WriteLine($"Кол-во: {directories.Length} Folder and {files.Length} Files");
-                GetInfo = true;
+               
             }
             else
             {
@@ -924,14 +925,10 @@ namespace FileManagerEmpty
 
         }
 
-
-        //вывод файлов
-
-
-
-        //вывод каталогов
-
-        //удаление каталога
+         /// <summary>
+         /// Удалить папку
+         /// </summary>
+         /// <param name="path"></param>
         static void DeleteDirectory(string path)
         {
             try
@@ -961,7 +958,10 @@ namespace FileManagerEmpty
         }
 
 
-        //удаление файла
+        /// <summary>
+        /// Удалить файл
+        /// </summary>
+        /// <param name="path"></param>
         static void DeleteFile(string path)
         {
             var tempName = new FileInfo(path).Name;
@@ -991,7 +991,11 @@ namespace FileManagerEmpty
         }
 
 
-        //копирование директории
+        /// <summary>
+        /// Скопировать папку
+        /// </summary>
+        /// <param name="pathFrom"></param>
+        /// <param name="pathTo"></param>
         static void CopyDirectory(string pathFrom, string pathTo)
         {
             DirectoryInfo dir = new DirectoryInfo(pathFrom);
@@ -1054,43 +1058,5 @@ namespace FileManagerEmpty
                 }
             }
         }
-
-
-        //копирование файла
-        static void CopyFile(string pathFrom, string pathTo)
-        {
-            try
-            {
-                File.Copy(pathFrom, pathTo);
-                //StandAtCommandLine();
-                Console.Write("Копирование успешно");
-            }
-            catch (Exception e)
-            {
-                // StandAtCommandLine();
-                Console.Write($"При копировании произошла ошибка");
-                string rootPath = Directory.GetCurrentDirectory();
-                //if (File.Exists(Path.Combine(rootPath, set.errorsLogFile)))
-                //{
-                //    var jsonString = JsonSerializer.Serialize(e.Message);
-                //    try
-                //    {
-                //        File.WriteAllText(Path.Combine(rootPath, set.errorsLogFile), jsonString);
-                //    }
-                //    catch
-                //    {
-                //        Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-                //    }
-                //}
-                Console.ReadKey();
-            }
-        }
-
-
-        //вывод помощи
-
-        //разделение строки на подстроки-команды
-
-
     }
 }
