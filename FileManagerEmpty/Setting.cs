@@ -1,6 +1,6 @@
 ﻿//namespace lesson3
 //{
-//   public class Setting
+//   public static class Setting
 //    {
 //      //  public int windowHeight { get; }
 //      //  public int windowWidth { get; }
@@ -30,5 +30,70 @@
 //            //bufferHeight = windowHeight;
 //            //bufferWidth = 200;
 //        }
+//static void CheckSettingsFile(ref Setting set)
+//{
+//    string path = Directory.GetCurrentDirectory();
+//    if (File.Exists(Path.Combine(path, set.settingsFile)))
+//    {
+//        try
+//        {
+//            string jsonSettings = File.ReadAllText(Path.Combine(path, set.settingsFile));
+//            var serr = JsonSerializer.Deserialize<Setting>(jsonSettings);
+//            if (serr != null)
+//            {
+//                string[] directories = Directory.GetDirectories(serr.lastPath);
+//                //Console.SetWindowSize(serr.windowWidth, serr.windowHeight);
+//                //Console.SetBufferSize(serr.bufferWidth, serr.bufferHeight);
+//                return;
+//            }
+
+//        }
+//        catch (Exception e)
+//        {
+//            StandAtCommandLine();
+//            Console.Write($"Ошибка при чтении настроек! Подробно в файле {set.errorsLogFile}. Настройки сброшены");
+//            if (File.Exists(Path.Combine(path, set.errorsLogFile)))
+//            {
+//                var jsonString = JsonSerializer.Serialize(e.Message);
+//                try
+//                {
+//                    File.WriteAllText(Path.Combine(path, set.errorsLogFile), jsonString);
+//                }
+//                catch
+//                {
+//                    Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
+//                }
+//            }
+//            Console.ReadKey();
+//        }
+//    }
+//}
+//static void SaveSettingsFile(Setting set)
+//{
+//    string path = Directory.GetCurrentDirectory();
+//    string jsonSettings = JsonSerializer.Serialize(set);
+//    try
+//    {
+//        File.WriteAllText(Path.Combine(path, set.settingsFile), jsonSettings);
+//    }
+//    catch (Exception e)
+//    {
+//        StandAtCommandLine();
+//        Console.Write("Ошибка при записи файла настроек!");
+//        if (File.Exists(Path.Combine(path, set.errorsLogFile)))
+//        {
+//            var jsonString = JsonSerializer.Serialize(e.Message);
+//            try
+//            {
+//                File.WriteAllText(Path.Combine(path, set.errorsLogFile), jsonString);
+//            }
+//            catch
+//            {
+//                Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
+//            }
+//        }
+//        Console.ReadKey();
+//    }
+//}
 //    }
 //}

@@ -638,48 +638,52 @@ namespace FileManagerEmpty
             Console.WriteLine(stringa);
             //создаем словарь с индексом элемента, для того чтобы потом по нему перемещаться 
             Dictionary<int, string> directoriesOrFiles = new();
-            int indexFile = 0;
+
 
 
             //string[] entries = Directory.GetDirectories(path);
+            int indexFile = 0;
+            var resultFolderAndFile = Directory.GetDirectories(path).
+                Select(e => new DirectoryInfo(e)).
+                OrderBy(ent => ent.CreationTime).
+                Select(dir => new
+            {
+                    Inform = dir.Name +"\t" + dir.CreationTime
+                }).Union(Directory.GetFiles(path).
+               Select(e => new FileInfo(e)).
+               OrderBy(ent => ent.CreationTime).
+               Select(dir => new
+               {
+                   Inform = dir.Name + "\t"  + dir.CreationTime
+                  // Inform = dir.Name+ "\t" + dir.Attributes + "\t" + dir.CreationTime
+               })).AsParallel().AsOrdered();
 
-            //var result = Directory.GetDirectories(path).OrderBy(ent => ent.CreationTime).Select(dir => new
+            foreach (var item in resultFolderAndFile)
+            {
+                directoriesOrFiles.Add(indexFile, item.Inform);
+                indexFile++;
+            }
+            //var resultFile = Directory.GetFiles(path).
+            //   Select(e => new FileInfo(e)).
+            //   OrderBy(ent => ent.CreationTime).
+            //   Select(dir => new
+            //   {
+            //       Name = dir.Name,
+            //       Attr = dir.Attributes,
+            //       Creation = dir.CreationTime
+            //   });
+            //int indexFile = 0;
+            //foreach (var item in Directory.GetDirectories(path))
             //{
-            //    Name = dir.Name,
-            //    Attr = dir.Attributes,
-            //    Creation = dir.CreationTime
-            //});
-
-
-
-            //var result = from dir in
-            //                 from e in entries select new DirectoryInfo(e)
-            //             orderby dir.CreationTime
-            //             select new
-            //             {
-            //                 Name = dir.Name,
-            //                 Attr = dir.Attributes,
-            //                 Creation = dir.CreationTime
-            //             };
-            //foreach (var item in result)
-            //{
-            //    Console.WriteLine("{0}\n\t{1}\t{2}",
-            //                      item.Name, item.Creation, item.Attr);
+            //    directoriesOrFiles.Add(indexFile, item);
+            //    indexFile++;
             //}
-
-
-
-            foreach (var item in Directory.GetDirectories(path))
-            {
-                directoriesOrFiles.Add(indexFile, item);
-                indexFile++;
-            }
-            //тоже самое делаем с файлами
-            foreach (var item in Directory.GetFiles(path))
-            {
-                directoriesOrFiles.Add(indexFile, item);
-                indexFile++;
-            }
+            ////тоже самое делаем с файлами
+            //foreach (var item in Directory.GetFiles(path))
+            //{
+            //    directoriesOrFiles.Add(indexFile, item);
+            //    indexFile++;
+            //}
             //провер. допустимое заданное число  выводимых файлов на экран
             if (directoriesOrFiles.Count() > 0)
             {
@@ -741,71 +745,7 @@ namespace FileManagerEmpty
         }
 
 
-        //static void CheckSettingsFile(ref Setting set)
-        //{
-        //    string path = Directory.GetCurrentDirectory();
-        //    if (File.Exists(Path.Combine(path, set.settingsFile)))
-        //    {
-        //        try
-        //        {
-        //            string jsonSettings = File.ReadAllText(Path.Combine(path, set.settingsFile));
-        //            var serr = JsonSerializer.Deserialize<Setting>(jsonSettings);
-        //            if (serr != null)
-        //            {
-        //                string[] directories = Directory.GetDirectories(serr.lastPath);
-        //                //Console.SetWindowSize(serr.windowWidth, serr.windowHeight);
-        //                //Console.SetBufferSize(serr.bufferWidth, serr.bufferHeight);
-        //                return;
-        //            }
-
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            StandAtCommandLine();
-        //            Console.Write($"Ошибка при чтении настроек! Подробно в файле {set.errorsLogFile}. Настройки сброшены");
-        //            if (File.Exists(Path.Combine(path, set.errorsLogFile)))
-        //            {
-        //                var jsonString = JsonSerializer.Serialize(e.Message);
-        //                try
-        //                {
-        //                    File.WriteAllText(Path.Combine(path, set.errorsLogFile), jsonString);
-        //                }
-        //                catch
-        //                {
-        //                    Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-        //                }
-        //            }
-        //            Console.ReadKey();
-        //        }
-        //    }
-        //}
-        //static void SaveSettingsFile(Setting set)
-        //{
-        //    string path = Directory.GetCurrentDirectory();
-        //    string jsonSettings = JsonSerializer.Serialize(set);
-        //    try
-        //    {
-        //        File.WriteAllText(Path.Combine(path, set.settingsFile), jsonSettings);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        StandAtCommandLine();
-        //        Console.Write("Ошибка при записи файла настроек!");
-        //        if (File.Exists(Path.Combine(path, set.errorsLogFile)))
-        //        {
-        //            var jsonString = JsonSerializer.Serialize(e.Message);
-        //            try
-        //            {
-        //                File.WriteAllText(Path.Combine(path, set.errorsLogFile), jsonString);
-        //            }
-        //            catch
-        //            {
-        //                Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-        //            }
-        //        }
-        //        Console.ReadKey();
-        //    }
-        //}
+        
 
 
         /// <summary>
