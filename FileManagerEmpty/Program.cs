@@ -636,14 +636,16 @@ namespace FileManagerEmpty
                 Select(e => new DirectoryInfo(e)).
                 OrderBy(ent => ent.CreationTime).
                 Select(dir => new
-            {
-                    Inform = dir.Name +"\t\t" + dir.CreationTime
+                {
+                    Inform = dir.Name
+                   // Inform = dir.Name +"\t\t" + dir.CreationTime
                 }).Union(Directory.GetFiles(path).
                Select(e => new FileInfo(e)).
                OrderBy(ent => ent.CreationTime).
                Select(dir => new
                {
-                   Inform = dir.Name + "\t\t"  + dir.CreationTime
+                   Inform = dir.Name
+                 //  Inform = dir.Name + "\t\t"  + dir.CreationTime
                   // Inform = dir.Name+ "\t" + dir.Attributes + "\t" + dir.CreationTime
                })).AsParallel().AsOrdered();
 
