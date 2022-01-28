@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using System.Text.Json;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
@@ -584,7 +585,7 @@ namespace FileManagerEmpty
 
         private static void DefoultInfo()
         {
-            var currentDirectory = Folder;
+            var currentDirectory = SelectFolder;
             GetDirectoryInfo(ref currentDirectory);
         }
         /// <summary>
@@ -615,11 +616,13 @@ namespace FileManagerEmpty
             var PageMaxSetting = Paging; //выбранная страница
             var set =new Setting();
             var checkFild =set.GetSettingConfig();//грузим из  файла кол-во разрешен вывод страниц
-            
-            var pageLines = checkFild.PageLines == -1 ? 8 : checkFild.PageLines > 8 ? 8 : checkFild.PageLines; //// кол-во выводимых файлов на страницу
-
+            var pageLines = 8;//дефолт
+            if (checkFild != null && checkFild.PageLines > 0)
+            {
+                pageLines = checkFild.PageLines;// кол-во выводимых файлов на страницу
+            }
             //сохраним настройку в файл
-            var saveSet = new lesson3.JsonSerWrite() { PageLines = Paging };
+            var saveSet = new lesson3.JsonSerWrite() { PageLines = pageLines, Folder =path };
             set.SaveSettingsFile(saveSet);
             //выводим инфу постранично
             Console.Write("Select [");

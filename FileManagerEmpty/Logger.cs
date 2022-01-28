@@ -14,7 +14,7 @@ namespace FileManagerEmpty
         public static Setting setting =new();
         static bool LoggerWrite=true;
         readonly static string PuthFolderErrorLog = setting.GetCurrentDirectory + "/errors/";
-        static string PuthLogger =Path.Combine(PuthFolderErrorLog, setting.errorsLogFile);
+        static string PuthLogger =Path.Combine(PuthFolderErrorLog, setting.ErrorsLogFile);
 
         public static  void WriteLog(ref Exception ex)
         {

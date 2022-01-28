@@ -45,7 +45,7 @@ namespace lesson3
         public void SaveSettingsFile(JsonSerWrite js)
         {
             var path = Path.Combine(GetCurrentDirectory, Config);
-            string jsonSettings = JsonSerializer.Serialize(path);
+            string jsonSettings = JsonSerializer.Serialize(js);
             try
             {
                 File.WriteAllText(path, jsonSettings);
