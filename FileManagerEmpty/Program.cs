@@ -7,28 +7,17 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Text.RegularExpressions;
+using System.Linq.Expressions;
+using static FileManagerEmpty.RegexHelp;
+using lesson3;
 
 namespace FileManagerEmpty
 {
 
-    //Вывод дерева файловой системы с условием “пейджинга”
-    //ls C:\Source -p 2
-    //Копирование каталога
-    //cp C:\Source D:\Target
-    //Копирование файла
-    //cp C:\source.txt D:\target.txt
-    //Удаление каталога рекурсивно
-    //rm C:\Source
-    //Удаление файла
-    //rm C:\source.txt
-    //Вывод информации
-    //file C:\source.txt
     //Функции и требования
-    //Просмотр файловой структуры
-    //Поддержка копирование файлов, каталогов
-    //Поддержка удаление файлов, каталогов
-    //Получение информации о размерах, системных атрибутов файла, каталога
-    //Вывод файловой структуры должен быть постраничным
+    //Просмотр файловой структуры+
+    //Поддержка копирование файлов, каталогов+
+    //Поддержка удаление файлов, каталогов+
     //В конфигурационном файле должна быть настройка вывода количества элементов на страницу
     //При выходе должно сохраняться, последнее состояние
     //Должны быть комментарии в коде
@@ -39,16 +28,44 @@ namespace FileManagerEmpty
     internal partial class Program
     {
         static Dictionary<string, string> collectionHelp = new Dictionary<string, string>();
-        static string Folder = @"C:\";
-        static string stringa = new String('=', 30);
+        static readonly string stringa = new String('=', 30);
         public delegate void OnKey(ConsoleKeyInfo key);
         public event OnKey KeyPr;
-
-        static string SelectFolder = @"C:/";
+        static string SelectFolder = "C:/";
         static int Paging = 0;
 
         //class CommandConsole
         //{
+        //    public Func<string, string?> ConstructGreetingExpression()
+        //    {
+        //        var personNameParameter = Expression.Parameter(typeof(string), "personName");
+
+        //        // Condition
+        //        var isNullOrWhiteSpaceMethod = typeof(string)
+        //            .GetMethod(nameof(string.IsNullOrWhiteSpace));
+
+        //        var condition = Expression.Not(
+        //            Expression.Call(isNullOrWhiteSpaceMethod, personNameParameter));
+
+        //        var concatMethod = typeof(string)
+        //.GetMethod(nameof(string.Concat), new[] { typeof(string), typeof(string) });
+
+        //        var trueClause = Expression.Call(
+        //            concatMethod,
+        //            Expression.Constant("Greetings, "),
+        //            personNameParameter);
+
+        //        // False clause
+        //        var falseClause = Expression.Constant(null, typeof(string));
+
+        //        // Ternary conditional
+        //        var conditional= Expression.Condition(condition, trueClause, falseClause);
+        //        var lambda = Expression.Lambda<Func<string, string?>>(conditional, personNameParameter);
+
+        //        return lambda.Compile();
+        //    }
+
+
         //    //public string ConsoleRead()
         //    //{
         //    //    string Commanda = null;
@@ -94,37 +111,28 @@ namespace FileManagerEmpty
         /// <param name="args"></param>
         static void Main(string[] args)
         {
+            ////Func<int, int, int> div =(a, b) => a / b;
+            ////Expression<Func<int, int, int>> divExpr =(a, b) => a / b;
+            ////var y =divExpr.Compile();
+            ////var tg = y(100, 4);
+            ////var getGreeting = new CommandConsole().ConstructGreetingExpression();;
+            //var greetingForJohn = getGreeting("John");
+
             //Cursor.
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Title = "FILE Manager " + Environment.Version.ToString();
-            ErrorsLogFile();
+            var set =new Setting().GetSettingConfig();
+            if (set is not null)
+            {
+                SelectFolder = set.Folder.Length >0 ? set.Folder : SelectFolder; //грузим последнюю папку 
+            }
+            Logger.ErrorsLogFile();
             DrawInterface();
-            Console.ReadKey();
 
         }
 
 
-        private static void ErrorsLogFile()
-        {
-            var errorsLogFile = "erro.json";
-            var DirError = Environment.CurrentDirectory + "/errors";
-            var pathErr = DirError + "/" + errorsLogFile;
-            try
-            {
-                if (!Directory.Exists(DirError))
-                {
-                    Directory.CreateDirectory(DirError);
-                }
-                if (!File.Exists(pathErr))
-                {
-                    File.Create(pathErr);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"{ex}");
-            }
-        }
+       
 
         /// <summary>
         /// Перерисоки интерфейса после ввода команд
@@ -133,9 +141,7 @@ namespace FileManagerEmpty
         {
             while (true)
             {
-
                 Console.Clear();
-
                 //рисовка и заполнение
                 Console_CursorPos(0, 0);
                 Console.WriteLine(stringa);
@@ -177,7 +183,7 @@ namespace FileManagerEmpty
             {
                 string res = ParseCommandLine(Splitt[0]);//опред только команду
 
-                if (res == null)
+                if (res is null)
                 {
                     Console.WriteLine("Команда не найдена");
                     Console_CursorPos(0, 22);
@@ -255,7 +261,7 @@ namespace FileManagerEmpty
         /// <returns></returns>
         private static bool OutFile(ref string pathInput, ref string comm)
         {
-            if (pathInput == null)
+            if (pathInput is null)
             {
                 var pathN = comm.Replace("file ", "", StringComparison.OrdinalIgnoreCase);
                 if (!Path.HasExtension(pathN))// папка 
@@ -359,22 +365,10 @@ namespace FileManagerEmpty
                     {
                         file.CopyTo(tempPath, false);
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
                         Console.Write($"Ошибка при копировании файла {file.Name} (Нажмите любую клавишу)");
-                        string rootPath = Directory.GetCurrentDirectory();
-                        //if (File.Exists(Path.Combine(rootPath, errorsLogFile)))
-                        //{
-                        //    var jsonString = JsonSerializer.Serialize(e.Message);
-                        //    try
-                        //    {
-                        //        File.WriteAllText(Path.Combine(rootPath, errorsLogFile), jsonString);
-                        //    }
-                        //    catch
-                        //    {
-                        //        Console.Write($"Ошибка записи в файл {errorsLogFile}");
-                        //    }
-                        //}
+                        Logger.WriteLog(ref ex);
                         Console.ReadKey();
                     }
                 }
@@ -383,15 +377,8 @@ namespace FileManagerEmpty
             {
                 File_Copy(pathInput, pathOutput);
             }
-
-
-
-            result = Path.HasExtension(pathInput);
-            return false;
-            if (pathInput == null || Directory.Exists(pathInput))//еще одна провера папки, вдруг юзер удалил ее =)
-            {
-                return false;
-            }
+            return true;
+            
         }
 
         /// <summary>
@@ -412,19 +399,7 @@ namespace FileManagerEmpty
             catch (Exception e)
             {
                 Console.Write($"При копировании произошла ошибка");
-                string rootPath = Directory.GetCurrentDirectory();
-                //if (File.Exists(Path.Combine(rootPath, errorsLogFile)))
-                //{
-                //    var jsonString = JsonSerializer.Serialize(e.Message);
-                //    try
-                //    {
-                //        File.WriteAllText(Path.Combine(rootPath, errorsLogFile), jsonString);
-                //    }
-                //    catch
-                //    {
-                //        Console.Write($"Ошибка записи в файл {errorsLogFile}");
-                //    }
-                //}
+                Logger.WriteLog(ref e);
                 Console.ReadKey();
             }
         }
@@ -440,15 +415,14 @@ namespace FileManagerEmpty
             {
                 SelectFolder = selectFolder;
                 Paging = pagg > -1 && pagg < int.MaxValue ? pagg : 0;
-                //выводим инфу постранично
+                //
+               
                 return true;
             }
             return false;
         }
 
-        readonly static string PatternLS = @".:\\+[#'.А-Яа-яA-Za-z0-9\\ ]* -p[ 0-9]{0,9999}";
-        readonly static string PatternAll = @".:\\+['.А-Яа-яA-Za-z0-9\\ ]* .:\\+['.А-Яа-яA-Za-z0-9\\ ]*";
-        readonly static string PatternNoPagging = @".:\\+['.А-Яа-яA-Za-z0-9\\ ]*";
+
         /// <summary>
         /// Проверка регуляркой папки, китайский не поодерживается но можно легко добавить...
         /// </summary>
@@ -464,21 +438,20 @@ namespace FileManagerEmpty
             bool ListorAll = res == "ls";
             //два вида регулярки в продакшен их можно поместить в статический класс и скопилировать сразу,
             //тут это делать не буду , чтобы была видна логика 
-            string pattern;
+            Regex pattern;
             if (ListorAll)
             {
-                pattern = PatternLS;
+                pattern = PatternPaggingComp;
             }
             else
             {
-                pattern = PatternAll;
+                pattern = PatternAllComand;
             }
-            var regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var regex = pattern;
             var mathess = regex.Matches(comm);
             if (ListorAll && mathess != null && mathess.Count == 0)//user has not entered pagination 
             {
-                pattern = PatternNoPagging;
-                regex = new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                regex = NoPagging;
                 mathess = regex.Matches(comm);
                 foreach (Match item in mathess)
                 {
@@ -542,7 +515,7 @@ namespace FileManagerEmpty
                                     if (type[i] == ':')
                                     {
                                         var pt = stringBuilder.ToString();
-                                        if (puthInput == null)
+                                        if (puthInput is null)
                                         {
                                             tempSymbol = pt.Substring(pt.Length - 1);//запоминаем до след. итерации
                                             puthInput = pt.Remove(pt.Length - 1);
@@ -550,7 +523,7 @@ namespace FileManagerEmpty
                                             Dobor = false;
                                             continue;
                                         }
-                                        else if (puthOup == null)
+                                        else if (puthOup is null)
                                         {
                                             tempSymbol = pt.Substring(pt.Length - 1);
                                             puthOup = pt.Remove(pt.Length - 1);
@@ -565,7 +538,7 @@ namespace FileManagerEmpty
                                 //запоминаем позицию  последнего пробела 
                             }
                         }
-                        if (stringBuilder.Length > 0 && puthOup == null)//после таких манипяляций остаются остатки 
+                        if (stringBuilder.Length > 0 && puthOup is null)//после таких манипяляций остаются остатки 
                         {
                             var pt = stringBuilder.ToString();
                             tempSymbol = pt.Substring(pt.Length - 1);
@@ -631,30 +604,43 @@ namespace FileManagerEmpty
         {
             
             var path = SelectFolder;//выбранная папка
+            if (!Directory.Exists(path))//так как мы грузим эту папку из  текстового файла,проверим ее на валидность 
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine($"{path} Folder no Found");
+                return;     
+                         
+            }
             var PageMaxSetting = Paging; //выбранная страница
-            var pageLines = 8;// кол-во выводимых файлов на страницу
+            var set =new Setting();
+            var checkFild =set.GetSettingConfig();//грузим из  файла кол-во разрешен вывод страниц
+            
+            var pageLines = checkFild.PageLines == -1 ? 8 : checkFild.PageLines > 8 ? 8 : checkFild.PageLines; //// кол-во выводимых файлов на страницу
+
+            //сохраним настройку в файл
+            var saveSet = new lesson3.JsonSerWrite() { PageLines = Paging };
+            set.SaveSettingsFile(saveSet);
+            //выводим инфу постранично
             Console.Write("Select [");
             Console.WriteLine(path + "]");
             Console.WriteLine(stringa);
             //создаем словарь с индексом элемента, для того чтобы потом по нему перемещаться 
             Dictionary<int, string> directoriesOrFiles = new();
 
-
-
-            //string[] entries = Directory.GetDirectories(path);
             int indexFile = 0;
             var resultFolderAndFile = Directory.GetDirectories(path).
                 Select(e => new DirectoryInfo(e)).
                 OrderBy(ent => ent.CreationTime).
                 Select(dir => new
             {
-                    Inform = dir.Name +"\t" + dir.CreationTime
+                    Inform = dir.Name +"\t\t" + dir.CreationTime
                 }).Union(Directory.GetFiles(path).
                Select(e => new FileInfo(e)).
                OrderBy(ent => ent.CreationTime).
                Select(dir => new
                {
-                   Inform = dir.Name + "\t"  + dir.CreationTime
+                   Inform = dir.Name + "\t\t"  + dir.CreationTime
                   // Inform = dir.Name+ "\t" + dir.Attributes + "\t" + dir.CreationTime
                })).AsParallel().AsOrdered();
 
@@ -663,33 +649,12 @@ namespace FileManagerEmpty
                 directoriesOrFiles.Add(indexFile, item.Inform);
                 indexFile++;
             }
-            //var resultFile = Directory.GetFiles(path).
-            //   Select(e => new FileInfo(e)).
-            //   OrderBy(ent => ent.CreationTime).
-            //   Select(dir => new
-            //   {
-            //       Name = dir.Name,
-            //       Attr = dir.Attributes,
-            //       Creation = dir.CreationTime
-            //   });
-            //int indexFile = 0;
-            //foreach (var item in Directory.GetDirectories(path))
-            //{
-            //    directoriesOrFiles.Add(indexFile, item);
-            //    indexFile++;
-            //}
-            ////тоже самое делаем с файлами
-            //foreach (var item in Directory.GetFiles(path))
-            //{
-            //    directoriesOrFiles.Add(indexFile, item);
-            //    indexFile++;
-            //}
+            ////тоже самое делаем с файлами         
             //провер. допустимое заданное число  выводимых файлов на экран
             if (directoriesOrFiles.Count() > 0)
             {
                 Dictionary<int, List<KeyValuePair<int, string>>> Pagination = new();
                 //распределения файлов по разным страницам 
-                //var temp = pageLines;//кол-во выводимы 
                 int indexPathPagin = 0;
                 int index = 0;
                 foreach (var pathId in directoriesOrFiles)
@@ -806,28 +771,6 @@ namespace FileManagerEmpty
             {
                 string[] subDirectories;
                 subDirectories = Directory.GetDirectories(path);
-                try
-                {
-
-                }
-                catch (Exception e)
-                {
-                    //string rootPath = Directory.GetCurrentDirectory();
-                    //if (File.Exists(Path.Combine(rootPath, set.errorsLogFile)))
-                    //{
-                    //    var jsonString = JsonSerializer.Serialize(e.Message);
-                    //    try
-                    //    {
-                    //        File.WriteAllText(Path.Combine(rootPath, set.errorsLogFile), jsonString);
-                    //    }
-                    //    catch
-                    //    {
-                    //        Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-                    //    }
-                    //}
-                    //return 0;
-                }
-
                 var subFiles = Directory.GetFiles(path);
                 long size = 0;
 
@@ -874,25 +817,12 @@ namespace FileManagerEmpty
             try
             {
                 Directory.Delete(path, true);
-
                 Console.Write("Удаление успешно");
             }
             catch (Exception e)
             {
                 Console.Write($"Ошибка при удалении каталога: {path}");
-                string rootPath = Directory.GetCurrentDirectory();
-                //if (File.Exists(Path.Combine(rootPath, set.errorsLogFile)))
-                //{
-                //    var jsonString = JsonSerializer.Serialize(e.Message);
-                //    try
-                //    {
-                //        File.WriteAllText(Path.Combine(rootPath, set.errorsLogFile), jsonString);
-                //    }
-                //    catch
-                //    {
-                //        Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-                //    }
-                //}
+                Logger.WriteLog(ref e);
                 Console.ReadKey();
             }
         }
@@ -914,18 +844,7 @@ namespace FileManagerEmpty
             catch (Exception e)
             {
                 Console.Write($"Ошибка при удалении файла: {tempName}");
-                //if (File.Exists(Path.Combine(rootPath, set.errorsLogFile)))
-                //{
-                //    var jsonString = JsonSerializer.Serialize(e.Message);
-                //    try
-                //    {
-                //        File.WriteAllText(Path.Combine(rootPath, set.errorsLogFile), jsonString);
-                //    }
-                //    catch
-                //    {
-                //        Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-                //    }
-                //}
+                Logger.WriteLog(ref e);
                 Console.ReadKey();
             }
         }
@@ -951,21 +870,8 @@ namespace FileManagerEmpty
                 }
                 catch (Exception e)
                 {
-                    //StandAtCommandLine();
                     Console.Write($"Ошибка при копировании файла {file.Name} (Нажмите любую клавишу)");
-                    string rootPath = Directory.GetCurrentDirectory();
-                    //if (File.Exists(Path.Combine(rootPath, set.errorsLogFile)))
-                    //{
-                    //    var jsonString = JsonSerializer.Serialize(e.Message);
-                    //    try
-                    //    {
-                    //        File.WriteAllText(Path.Combine(rootPath, set.errorsLogFile), jsonString);
-                    //    }
-                    //    catch
-                    //    {
-                    //        Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-                    //    }
-                    //}
+                    Logger.WriteLog(ref e);
                     Console.ReadKey();
                 }
             }
@@ -979,21 +885,8 @@ namespace FileManagerEmpty
                 }
                 catch (Exception e)
                 {
-                    //StandAtCommandLine();
                     Console.Write($"Ошибка при копировании директории {subdir.FullName} (Нажмите любую клавишу)");
-                    string rootPath = Directory.GetCurrentDirectory();
-                    //if (File.Exists(Path.Combine(rootPath, set.errorsLogFile)))
-                    //{
-                    //    var jsonString = JsonSerializer.Serialize(e.Message);
-                    //    try
-                    //    {
-                    //        File.WriteAllText(Path.Combine(rootPath, set.errorsLogFile), jsonString);
-                    //    }
-                    //    catch
-                    //    {
-                    //        Console.Write($"Ошибка записи в файл {set.errorsLogFile}");
-                    //    }
-                    //}
+                    Logger.WriteLog(ref e);
                     Console.ReadKey();
                 }
             }
